@@ -1,0 +1,10 @@
+{
+  "version": "3.2",
+  "PATCH": "1",
+  "chromestupid": "true",
+  "releaseDate": "2025-11-04",
+  "releaseNotes": "This release adds remote patch syncing. More info on GitHub. If you are using an extension store, feel free to ignore this.",
+  "EXTENSION_NAME": "Duolingo Max Extension",
+  "EXTENSION_URL": "https://github.com/hungUWU123/doulinsupermax/",
+  "BANNER": "<div class='thPiC'><img class='_1xOxM' src='https://hunguwu123.github.io/doulinsupermax/icon.svg' style='border-radius:100px'></div><div class='_3jiBp'><h4 class='qyEhl'>Duolingo Max</h4><span class='_3S2Xa'>Created by <a href='https://zalo.me/g/wrikaf609' target='_blank' style='color:#07b3ec'>HUNGLE</a></span></div><div class='_36kJA'><div><a href='https://hunguwu123.github.io/doulinsupermax/donations.html' target='_blank'><button class='_1ursp _2V6ug _2paU5 _3gQUj _7jW2t rdtAy'><span class='_9lHjd' style='color:#d7d62b'>💵 Donate</span></button></a></div></div>"
+}
