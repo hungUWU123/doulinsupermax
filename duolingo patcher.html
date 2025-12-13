@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Duolingo Max Patcher</title>
+<style>
+  :root {
+    --bg-color: #f0f2f5;
+    --card-bg: #ffffff;
+    --primary-color: #58cc02;
+    --primary-hover: #62e002;
+    --text-color: #3c3c3c;
+    --border-color: #e5e5e5;
+    --code-bg: #282c34;
+    --code-text: #abb2bf;
+    --info-bg: #e8f4ff;
+    --info-border: #bde0ff;
+    --info-text: #0c549c;
+    --secondary-text: #777;
+  }
+
+  /* --- Dark Mode Theme --- */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-color: #121212;
+      --card-bg: #1e1e1e;
+      --text-color: #e0e0e0;
+      --border-color: #444;
+      --info-bg: #1a2c42;
+      --info-border: #2a5a8a;
+      --info-text: #a9d1ff;
+      --secondary-text: #aaa;
+    }
+    
+    button, .file-btn, select {
+        background-color: #333 !important;
+        border-color: #555 !important;
+    }
+    
+    button:hover, .file-btn:hover, select:hover {
+        background-color: #444 !important;
+        border-color: #777 !important;
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 40px 20px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 30px;
+    border: 1px solid var(--border-color);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 30px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 20px;
+    transition: border-color 0.2s ease;
+  }
+  
+  h1 {
+    color: var(--primary-color);
+    font-size: 2.2em;
+    margin: 0;
+  }
+  
+  h2 {
+    font-weight: 400;
+    font-size: 1.1em;
+    color: var(--secondary-text);
+    margin: 5px 0 0;
+  }
+
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-bottom: 25px;
+  }
+  
+  .file-input-wrapper {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+  }
+  .file-input-wrapper input[type=file] {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+  .file-btn {
+    display: inline-block;
+  }
+  #fileName {
+    color: var(--secondary-text);
+    font-size: 0.9em;
+    margin-left: 10px;
+  }
+
+  button, .file-btn, select {
+    font-size: 1em;
+    padding: 10px 20px;
+    cursor: pointer;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: #fff;
+    color: var(--text-color);
+    transition: all 0.2s ease;
+  }
+
+  button:hover, .file-btn:hover, select:hover {
+    border-color: #b0b0b0;
+    background-color: #f9f9f9;
+  }
+
+  #transformBtn {
+    background-color: var(--primary-color) !important;
+    color: white !important;
+    font-weight: bold;
+    border: none !important;
+  }
+
+  #transformBtn:hover {
+    background-color: var(--primary-hover) !important;
+  }
+  
+  #transformBtn:disabled {
+    background-color: #a5d6a7 !important;
+    cursor: wait;
+  }
+
+  .panels-container {
+    display: flex;
+    gap: 20px;
+    /* --- MODIFICATION: Set a fixed height for the container --- */
+    height: 450px; 
+  }
+
+  .code-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* Prevents flexbox overflow */
+  }
+
+  .code-panel h3 {
+    margin-top: 0;
+    font-weight: 600;
+    color: var(--text-color);
+  }
+
+  textarea, pre {
+    width: 100%;
+    height: 100%; /* --- MODIFICATION: Fill the fixed-height parent --- */
+    font-family: 'Fira Code', 'Courier New', monospace;
+    font-size: 0.9em;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    padding: 15px;
+    margin: 0;
+    box-sizing: border-box;
+    background-color: var(--code-bg);
+    color: var(--code-text);
+    resize: none; /* Disable manual resizing */
+    transition: border-color 0.2s ease;
+  }
+  
+  pre {
+    white-space: pre-wrap;
+    overflow-y: auto;
+    word-break: break-all;
+  }
+  
+  textarea:focus, select:focus {
+    outline: 2px solid var(--primary-color);
+    border-color: transparent;
+  }
+
+  .results-area {
+    margin-top: 20px;
+    display: none; 
+    align-items: center;
+    gap: 15px;
+  }
+
+  #downloadLink {
+    font-size: 1em;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    background-color: #4CAF50;
+    color: white;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+  }
+  #downloadLink:hover {
+    background-color: #45a049;
+  }
+
+  .info-box {
+    text-align: center;
+    margin-top: 30px;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: var(--info-bg);
+    color: var(--info-text);
+    border: 1px solid var(--info-border);
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+  
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Duolingo Max Patcher</h1>
+    <h2>Select a file and a patch based on the subscription you want, then apply it.</h2>
+    <h2>You must use all the chunks for this to work.</h2>
+  </header>
+  
+  <div class="controls">
+    <div class="file-input-wrapper">
+      <span class="file-btn">Open JS File</span>
+      <input type="file" id="fileInput" accept=".js">
+    </div>
+    <select id="patchSelector">
+      <option value="app">App.js (Max)</option>
+      <option value="app_premium">App.js (Super)</option>
+      <option value="app_immersive">App.js (Super/Free Trial)</option>
+      <option value="7220">Chunk 7220.js</option>
+      <option value="6150">Chunk 6150.js</option>
+      <option value="4370">Chunk 4370.js</option>
+    </select>
+    <button id="transformBtn">Apply Patch</button>
+    <span id="fileName">No file selected</span>
+  </div>
+
+  <div class="panels-container">
+    <div class="code-panel">
+      <h3>Original Code</h3>
+      <textarea id="inputArea" placeholder="// Paste code or open a JS file to be patched..."></textarea>
+    </div>
+    <div class="code-panel">
+      <h3>Patched Code</h3>
+      <pre id="outputArea">(Patched code will appear here)</pre>
+    </div>
+  </div>
+
+  <div class="results-area" id="resultsArea">
+    <a id="downloadLink" href="#">Download Patched File</a>
+    <button id="copyBtn">Copy to Clipboard</button>
+  </div>
+  
+  <div class="info-box">
+    <strong>Next Step:</strong> Once you've patched all required files, use the modified versions in your browser's local overrides feature.
+  </div>
+</div>
+
+<script>
+// --- CORE PATCHING LOGIC (Unchanged from original) ---
+
+/**
+ * Main orchestrator function.
+ * Applies a selected patch to the input code.
+ * @param {string} code The original JavaScript code.
+ * @param {string} patchType The key for the patch to apply.
+ */
+function transformCode(code, patchType) {
+  switch (patchType) {
+    case 'app':
+      return patchApp(code);
+    case 'app_premium':
+      return patchAppPremium(code);
+    case 'app_immersive':
+      return patchAppImmersive(code);
+    case '7220':
+      return patch7220(code);
+    case '6150':
+      return patch6150(code);
+    case '4370':
+      return patch4370(code);
+    default:
+      alert('Unknown patch type');
+      return code;
+  }
+}
+
+// --- PART 1: app*.js Patches ---
+function patchApp(code) {
+  code = code.replace(
+    /([A-Za-z_$][\w$]*)\s*=\s*e\s*=>\s*e\.items(?!\s*[\.\[(])\s*(?=[,;)}]|$)/g,
+    `$1=e=>({...e.items,inventory:{...e.items.inventory,gold_subscription:{itemName:"gold_subscription",subscriptionInfo:{vendor:"STRIPE",renewing:true,isFamilyPlan:true,expectedExpiration:9999999999000}}}})`
+  );
+  code = code.replace(
+    /([A-Za-z_$][\w$]*)\s*=\s*e\s*=>\s*e\.user(?!\s*[\.\[(])\s*(?=[,;)}]|$)/g,
+    `$1=(()=>{let lu=null,lpu=null;return e=>{const cu=e.user;if(cu===lu)return lpu;lu=cu;lpu={...cu,hasPlus:true};return lpu;};})()`
+  );
+  code = code.replace(
+    /([A-Za-z_$][\w$]*)\s*=\s*!!window\.webkitSpeechRecognition\s*&&\s*\(\s*[A-Za-z_$][\w$]*\.Z\.chrome\s*\|\|\s*[A-Za-z_$][\w$]*\.Z\.edgeSupportedSpeaking\s*\)/g,
+    (_, v) => `${v} = !!(window.SpeechRecognition || window.webkitSpeechRecognition)`
+  );
+  return code;
+}
+function patchAppPremium(code) {
+  const before = code;
+  code = code.replace(
+    /([A-Za-z_$][\w$]*)\s*=\s*e\s*=>\s*e\.items(?!\s*[\.\[(])\s*(?=[,;)}]|$)/g,
+    `$1=e=>({...e.items,inventory:{...e.items.inventory,premium_subscription:{itemName:"premium_subscription",subscriptionInfo:{vendor:"STRIPE",renewing:true,isFamilyPlan:true,expectedExpiration:9999999999000}}}})`
+  );
+  if (code === before && !code.includes('premium_subscription')) {
+    code = patchApp(code)
+      .replace(/"gold_subscription"/g, '"premium_subscription"')
+      .replace(/\bgold_subscription\b/g, 'premium_subscription');
+  }
+  code = code.replace(
+    /([A-Za-z_$][\w$]*)\s*=\s*e\s*=>\s*e\.user(?!\s*[\.\[(])\s*(?=[,;)}]|$)/g,
+    `$1=(()=>{let lu=null,lpu=null;return e=>{const cu=e.user;if(cu===lu)return lpu;lu=cu;lpu={...cu,hasPlus:true};return lpu;};})()`
+  );
+  code = code.replace(
+    /([A-Za-z_$][\w$]*)\s*=\s*!!window\.webkitSpeechRecognition\s*&&\s*\(\s*[A-Za-z_$][\w$]*\.Z\.chrome\s*\|\|\s*[A-Za-z_$][\w$]*\.Z\.edgeSupportedSpeaking\s*\)/g,
+    (_, v) => `${v} = !!(window.SpeechRecognition || window.webkitSpeechRecognition)`
+  );
+  return code;
+}
+function patchAppImmersive(code) {
+  const before = code;
+  code = code.replace(
+    /([A-Za-z_$][\w$]*)\s*=\s*e\s*=>\s*e\.items(?!\s*[\.\[(])\s*(?=[,;)}]|$)/g,
+    `$1=e=>({...e.items,inventory:{...e.items.inventory,immersive_subscription:{itemName:"immersive_subscription",subscriptionInfo:{vendor:"STRIPE",renewing:true,isFamilyPlan:true,expectedExpiration:9999999999000}}}})`
+  );
+  if (code === before && !code.includes('immersive_subscription')) {
+    code = patchApp(code)
+      .replace(/"gold_subscription"/g, '"immersive_subscription"')
+      .replace(/\bgold_subscription\b/g, 'immersive_subscription');
+  }
+  code = code.replace(
+    /([A-Za-z_$][\w$]*)\s*=\s*e\s*=>\s*e\.user(?!\s*[\.\[(])\s*(?=[,;)}]|$)/g,
+    `$1=(()=>{let lu=null,lpu=null;return e=>{const cu=e.user;if(cu===lu)return lpu;lu=cu;lpu={...cu,hasPlus:true};return lpu;};})()`
+  );
+  code = code.replace(
+    /([A-Za-z_$][\w$]*)\s*=\s*!!window\.webkitSpeechRecognition\s*&&\s*\(\s*[A-Za-z_$][\w$]*\.Z\.chrome\s*\|\|\s*[A-Za-z_$][\w$]*\.Z\.edgeSupportedSpeaking\s*\)/g,
+    (_, v) => `${v} = !!(window.SpeechRecognition || window.webkitSpeechRecognition)`
+  );
+  return code;
+}
+
+// --- PART 2: Other Chunk Patches ---
+function patch7220(code) {
+  return code
+    .replace(/isDisabled:\s*!0\s*,/g, 'isDisabled: false,')
+    .replace(/isDisabled:!0,/g, 'isDisabled: false,')
+    .replace(/showSuperBadge:\s*!e\s*,/g, 'showSuperBadge: false,')
+    .replace(/showSuperBadge:!e,/g, 'showSuperBadge: false,')
+    .replace(/e\s*=>\s*e\.user\.hasPlus/g, 'e => !e.user.hasPlus');
+}
+function patch6150(code) {
+  return replaceOnButtonClick(code, '/mistakes-review', { removeDisabled: true });
+}
+function patch4370(code) {
+  return replaceOnButtonClick(code, '/practice-hub/words/practice', { removeDisabled: true });
+}
+
+// --- Generic handler used by patch6150 & patch4370 ---
+function replaceOnButtonClick(code, targetRoute, opts = {}) {
+  let out = code; let cursor = 0;
+  while (true) {
+    const pushIdx = out.indexOf('.push(', cursor); if (pushIdx === -1) break;
+    let p = pushIdx + '.push('.length; while (p < out.length && /\s/.test(out[p])) p++;
+    const q = out[p]; if (!q || (q !== '"' && q !== '\'')) { cursor = pushIdx + 1; continue; }
+    let q2 = p + 1, arg = '';
+    while (q2 < out.length) {
+      if (out[q2] === '\\') { q2 += 2; continue; }
+      if (out[q2] === q) break;
+      arg += out[q2++];
+    }
+    if (arg !== targetRoute) { cursor = pushIdx + 1; continue; }
+    const routerIdent = findIdentifierBeforeDot(out, pushIdx); if (!routerIdent) { cursor = pushIdx + 1; continue; }
+    const keyPos = out.lastIndexOf('onButtonClick', pushIdx); if (keyPos === -1) { cursor = pushIdx + 1; continue; }
+    const colon = out.indexOf(':', keyPos + 'onButtonClick'.length); if (colon === -1 || colon > pushIdx) { cursor = pushIdx + 1; continue; }
+    const braceStart = out.indexOf('{', colon); if (braceStart === -1 || braceStart > pushIdx) { cursor = pushIdx + 1; continue; }
+    const braceEnd = findMatchingBrace(out, braceStart); if (braceEnd === -1 || braceEnd < pushIdx) { cursor = pushIdx + 1; continue; }
+    let replaceFrom = keyPos; let replaceTo = braceEnd;
+    if (opts.removeDisabled) {
+      const res = removeDisabledInObject(out, replaceFrom, replaceTo);
+      out = res.out; replaceFrom = res.replaceFrom; replaceTo = res.replaceTo;
+    }
+    let commaAfter = '';
+    if (out[replaceTo + 1] === ',') { commaAfter = ','; replaceTo++; }
+    const replacement = `onButtonClick:()=>{${routerIdent}.push("${targetRoute}");}${commaAfter}`;
+    out = out.slice(0, replaceFrom) + replacement + out.slice(replaceTo + 1);
+    cursor = replaceFrom + replacement.length;
+  }
+  return out.replace(/,\s*,/g, ',').replace(/\{\s*,/g, '{');
+}
+
+// --- Helper Functions ---
+function findIdentifierBeforeDot(str, dotPos) {
+  let i = dotPos - 1; while (i >= 0 && /\s/.test(str[i])) i--;
+  if (i < 0 || !/[A-Za-z0-9_$]/.test(str[i])) return null;
+  let end = i; while (i >= 0 && /[A-Za-z0-9_$]/.test(str[i])) i--;
+  return str.slice(i + 1, end + 1);
+}
+function findMatchingBrace(str, braceStart) {
+  let depth = 0;
+  for (let k = braceStart; k < str.length; k++) {
+    const ch = str[k];
+    if (ch === '{') depth++;
+    else if (ch === '}') { depth--; if (depth === 0) return k; }
+    else if (ch === '"' || ch === '\'' || ch === '`') {
+      const qc = ch; k++;
+      while (k < str.length) {
+        if (str[k] === '\\') { k += 2; continue; }
+        if (str[k] === qc) break; k++;
+      }
+    } else if (ch === '/') {
+      const next = str[k + 1];
+      if (next === '/') { k += 2; while (k < str.length && str[k] !== '\n') k++; }
+      else if (next === '*') { k += 2; while (k + 1 < str.length && !(str[k] === '*' && str[k + 1] === '/')) k++; k += 1; }
+    }
+  }
+  return -1;
+}
+function removeDisabledInObject(currentOut, replaceFrom, replaceTo) {
+  const scanLimit = 2000;
+  const leftBound = Math.max(0, replaceFrom - scanLimit);
+  let objStart = -1, objEnd = -1;
+  for (let j = replaceFrom - 1; j >= leftBound; j--) {
+    if (currentOut[j] === '{') {
+      const match = findMatchingBrace(currentOut, j);
+      if (match !== -1 && match >= replaceTo) { objStart = j; objEnd = match; break; }
+    } else if (currentOut[j] === ';' || currentOut[j] === '(') { if (replaceFrom - j > 200) break; }
+  }
+  if (objStart === -1) return { out: currentOut, replaceFrom, replaceTo };
+  const objStr = currentOut.slice(objStart, objEnd + 1);
+  const patterns = [ /disabled\s*:\s*!\s*[A-Za-z_$][\w$]*\s*,/, /,\s*disabled\s*:\s*!\s*[A-Za-z_$][\w$]*/, /^\{\s*disabled\s*:\s*!\s*[A-Za-z_$][\w$]*\s*\}$/ ];
+  let relIndex = -1, matchLen = 0, m = null;
+  for (const r of patterns) { m = objStr.match(r); if (m) { relIndex = objStr.indexOf(m[0]); matchLen = m[0].length; break; } }
+  if (relIndex === -1) return { out: currentOut, replaceFrom, replaceTo };
+  const absIdx = objStart + relIndex;
+  let newOut = currentOut.slice(0, absIdx) + currentOut.slice(absIdx + matchLen);
+  const removedLen = matchLen;
+  if (absIdx < replaceFrom) replaceFrom -= removedLen;
+  if (absIdx <= replaceTo) replaceTo -= removedLen;
+  const cleanStart = Math.max(0, absIdx - 40);
+  const cleanEnd = Math.min(newOut.length, absIdx + 40);
+  const before = newOut.slice(0, cleanStart);
+  const mid = newOut.slice(cleanStart, cleanEnd).replace(/,\s*,/g, ',').replace(/\{\s*,/g, '{');
+  const after = newOut.slice(cleanEnd);
+  return { out: before + mid + after, replaceFrom, replaceTo };
+}
+
+// --- UI-FOCUSED JAVASCRIPT ---
+document.addEventListener('DOMContentLoaded', () => {
+  const fileInput = document.getElementById('fileInput');
+  const fileNameSpan = document.getElementById('fileName');
+  const transformBtn = document.getElementById('transformBtn');
+  const inputArea = document.getElementById('inputArea');
+  const outputArea = document.getElementById('outputArea');
+  const patchSelector = document.getElementById('patchSelector');
+  const downloadLink = document.getElementById('downloadLink');
+  const resultsArea = document.getElementById('resultsArea');
+  const copyBtn = document.getElementById('copyBtn');
+
+  // File input change handler
+  fileInput.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) {
+      fileNameSpan.textContent = 'No file selected';
+      return;
+    }
+    fileNameSpan.textContent = file.name;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      inputArea.value = ev.target.result;
+    };
+    reader.readAsText(file);
+  });
+  
+  // Transform button click handler
+  transformBtn.addEventListener('click', () => {
+    const originalCode = inputArea.value;
+    if (!originalCode.trim()) {
+      alert('Input code is empty!');
+      return;
+    }
+
+    transformBtn.disabled = true;
+    transformBtn.textContent = 'Applying...';
+    
+    setTimeout(() => {
+        try {
+            const patchType = patchSelector.value;
+            const modifiedCode = transformCode(originalCode, patchType);
+            outputArea.textContent = modifiedCode;
+      
+            const blob = new Blob([modifiedCode], { type: 'application/javascript' });
+            const url = URL.createObjectURL(blob);
+            downloadLink.href = url;
+            
+            let downloadName = fileInput.files.length > 0 ? fileInput.files[0].name : `${patchType}_patched.js`;
+            downloadLink.download = downloadName;
+      
+            resultsArea.style.display = 'flex';
+        } catch (error) {
+            console.error("Patching failed:", error);
+            outputArea.textContent = `An error occurred during patching:\n\n${error.message}`;
+            alert("An error occurred. Check the console for details.");
+        } finally {
+            transformBtn.disabled = false;
+            transformBtn.textContent = 'Apply Patch';
+        }
+    }, 50);
+  });
+
+  // Copy to clipboard handler
+  copyBtn.addEventListener('click', () => {
+    const textToCopy = outputArea.textContent;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => { copyBtn.textContent = 'Copy to Clipboard'; }, 2000);
+      }).catch(err => {
+        alert('Failed to copy text.');
+        console.error('Clipboard error:', err);
+      });
+    } else {
+      alert('Clipboard API not available in your browser.');
+    }
+  });
+});
+</script>
+</body>
+</html>
