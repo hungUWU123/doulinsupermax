@@ -175,7 +175,7 @@ app.get('/dashboard', requireLogin, async (req, res) => {
 
     <hr style="margin:24px 0" />
     <h3>Test gọi API validate</h3>
-    <pre>curl -H "x-api-key: YOUR_KEY" http://localhost:${process.env.PORT || 3000}/api/validate-key</pre>
+    <pre>curl -H "x-api-key: YOUR_KEY" https://doulinsupermax.onrender.com:${process.env.PORT || 3000}/api/validate-key</pre>
   </body></html>
   `);
 });
@@ -215,5 +215,5 @@ app.get('/api/validate-key', requireApiKey, (req, res) => {
 // ===== start =====
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
-  console.log(`Server running: http://localhost:${port}`);
+  console.log(`Server running: https://doulinsupermax.onrender.com:${port}`);
 });
