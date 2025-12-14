@@ -81,5 +81,19 @@ app.post('/verify-key', async (req, res) => {
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Server running on port ${port}`));
+// POST /list-keys: Xem danh sách tất cả key (chỉ admin)
+app.post('/list-keys', async (req, res) => {
+  const { admin_secret } = req.body;
+  if (admin_secret !== 'hungle123') { // Phải trùng với ADMIN_PASSWORD ở trên
+    return res.status(403).json({ error: 'Unauthorized' });
+  }
+
+  try {
+    const result = await pool.query('SELECT key, type, expiration FROM keys ORDER BY created_at DESC');
+    res.json({ keys: result.rows });
+  } catch (err) {
+    res.status(500).json({ error: 'Database error' });
+  }
+});
 
 module.exports = app; // Cho Vercel
