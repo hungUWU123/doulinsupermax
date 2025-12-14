@@ -215,5 +215,6 @@ app.get('/api/validate-key', requireApiKey, (req, res) => {
 // ===== start =====
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
-  console.log(`Server running: https://doulinsupermax.onrender.com:${port}`);
+  console.log(`Server running on port ${port}`);
 });
+
