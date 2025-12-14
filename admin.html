@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quản Lý Key - Duolingo Max</title>
+  <style>
+    :root {
+      --primary: #00c853;
+      --dark: #121212;
+      --light: #ffffff;
+      --gray: #f0f0f0;
+    }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      width: 90%;
+      max-width: 600px;
+      overflow: hidden;
+    }
+    header {
+      background: var(--dark);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 { margin: 0; font-size: 24px; }
+    .content {
+      padding: 30px;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+    button:hover { background: #00b140; transform: translateY(-2px); }
+    .key-list {
+      margin-top: 30px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .key-item {
+      background: var(--gray);
+      padding: 12px;
+      border-radius: 8px;
+      margin: 8px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: monospace;
+    }
+    .key { font-weight: bold; color: #333; }
+    .type { font-size: 14px; color: #666; }
+    .expired { color: #d32f2f; }
+    .valid { color: var(--primary); }
+    .loading { text-align: center; padding: 20px; color: #666; }
+    .error { color: #d32f2f; text-align: center; margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🔑 Quản Lý Key Duolingo Max</h1>
+      <p>Chỉ dành cho Admin</p>
+    </header>
+    <div class="content">
+      <label>Mật khẩu Admin:</label>
+      <input type="password" id="adminPass" placeholder="Nhập mật khẩu để truy cập" />
+
+      <div id="mainForm" style="display:none;">
+        <label>Key mới:</label>
+        <input type="text" id="newKey" placeholder="Ví dụ: HUNGMAX2025" />
+
+        <label>Loại key:</label>
+        <select id="keyType">
+          <option value="hour">1 Giờ</option>
+          <option value="day">1 Ngày</option>
+          <option value="month">1 Tháng</option>
+          <option value="lifetime">Vĩnh viễn (Lifetime)</option>
+        </select>
+
+        <button onclick="addKey()">➕ Thêm Key Mới</button>
+
+        <h3 style="margin-top:30px;">📋 Danh sách Key hiện tại</h3>
+        <div id="keyList" class="key-list">
+          <div class="loading">Đang tải danh sách key...</div>
+        </div>
+      </div>
+
+      <div id="errorMsg" class="error" style="display:none;"></div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = ''; // Để trống = dùng cùng domain[](https://your-project.vercel.app)
+    const ADMIN_PASSWORD = 'hungle123'; // ⚠️ ĐỔI MẬT KHAU NÀY NGAY! Ví dụ: 'mysecretpass2025'
+
+    function showError(msg) {
+      const el = document.getElementById('errorMsg');
+      el.textContent = msg;
+      el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 5000);
+    }
+
+    async function checkAuth() {
+      const pass = document.getElementById('adminPass').value;
+      if (pass === ADMIN_PASSWORD) {
+        document.getElementById('adminPass').style.display = 'none';
+        document.getElementById('mainForm').style.display = 'block';
+        loadKeys();
+      } else if (pass !== '') {
+        showError('❌ Mật khẩu sai!');
+      }
+    }
+
+    // Enter để login
+    document.getElementById('adminPass').addEventListener('keypress', e => {
+      if (e.key === 'Enter') checkAuth();
+    });
+
+    async function addKey() {
+      const key = document.getElementById('newKey').value.trim();
+      const type = document.getElementById('keyType').value;
+
+      if (!key) return showError('Vui lòng nhập key!');
+
+      try {
+        const res = await fetch(API_URL + '/add-key', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key, type, admin_secret: ADMIN_PASSWORD })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showError('✅ Thêm key thành công!');
+          document.getElementById('newKey').value = '';
+          loadKeys();
+        } else {
+          showError('❌ Lỗi: ' + (data.error || 'Unknown'));
+        }
+      } catch (err) {
+        showError('Lỗi kết nối server');
+      }
+    }
+
+    async function loadKeys() {
+      const listEl = document.getElementById('keyList');
+      listEl.innerHTML = '<div class="loading">Đang tải...</div>';
+
+      try {
+        // Thêm endpoint mới để list key (xem bước 2 bên dưới)
+        const res = await fetch(API_URL + '/list-keys', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ admin_secret: ADMIN_PASSWORD })
+        });
+        const data = await res.json();
+
+        if (!data.keys || data.keys.length === 0) {
+          listEl.innerHTML = '<div style="text-align:center;color:#999;">Chưa có key nào</div>';
+          return;
+        }
+
+        listEl.innerHTML = data.keys.map(k => {
+          const exp = k.expiration ? new Date(k.expiration) : null;
+          const isExpired = exp && exp < new Date();
+          const status = isExpired ? 'Hết hạn' : (exp ? 'Còn hạn đến ' + exp.toLocaleString() : 'Vĩnh viễn');
+          const statusClass = isExpired ? 'expired' : 'valid';
+          return `
+            <div class="key-item">
+              <div>
+                <div class="key">${k.key}</div>
+                <div class="type">${k.type} • <span class="${statusClass}">${status}</span></div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        listEl.innerHTML = '<div class="error">Không tải được danh sách key</div>';
+      }
+    }
+
+    // Tự động check nếu đã nhập pass trước đó (tùy chọn)
+    window.onload = () => {
+      const savedPass = localStorage.getItem('adminAuth');
+      if (savedPass === ADMIN_PASSWORD) {
+        document.getElementById('adminPass').style.display = 'none';
+        document.getElementById('mainForm').style.display = 'block';
+        loadKeys();
+      }
+    };
+  </script>
+</body>
+</html>
